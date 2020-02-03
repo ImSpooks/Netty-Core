@@ -41,7 +41,7 @@ To create packets <i>(<b>Note:</b> `PacketIn` is used for client-to-server packe
 5. Read all variable data in the `receive` method.
 ##
 
-###Handling packets
+### Handling packets
 To handle packets:
 
 1. Find or create the packet handler class for a packet type in `me.ImSpooks.nettycore.<client and/or server>.packets.handle`, e.g. `NetworkPacketHandler`.
