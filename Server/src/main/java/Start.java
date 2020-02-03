@@ -1,4 +1,4 @@
-import me.ImSpooks.rpg.multiplayer.server.Core;
+import me.ImSpooks.nettycore.server.Core;
 
 /**
  * Created by Nick on 29 jan. 2020.

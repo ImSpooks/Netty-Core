@@ -1,4 +1,6 @@
 .idea/
 target/
 config/
+out/
 *.iml
+*.bat
