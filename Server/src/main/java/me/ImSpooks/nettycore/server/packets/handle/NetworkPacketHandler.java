@@ -83,8 +83,6 @@ public class NetworkPacketHandler extends SubPacketHandler {
         }
         this.packetHandler.getClient().setIdentification(packet.getIdentification());
         this.packetHandler.getClient().setName(packet.getName());
-
-        System.out.println("Trying to send confirm");
         ctx.writeAndFlush(new PacketOutConfirmConnection());
     }
 
