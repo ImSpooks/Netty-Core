@@ -23,9 +23,9 @@ Building this project is pretty easy, dependencies will automatically be downloa
 2. Browse to the cloned repository.
 3. Run the command `mvn package` in terminal or build with maven using your IDE. The jar files will be build in the `out/` folder.
 
-To run the server, go to the `out` folder and type `java -jar Server-1.0.jar`
+To run the server, go to the `out` folder and type `java -jar Server-1.0.jar` in the terminal.
 
-To run the server, go to the `out` folder and type `java -jar Client-1.0.jar`
+To run the client, go to the `out` folder and type `java -jar Client-1.0.jar` in the terminal.
 
 # Using this project
 To use/edit this project all you need is a Java IDE such as IntelliJ with Maven.
@@ -146,14 +146,14 @@ To launch the client/server you need to do these few things:
 class Launcher {
 
     public static void main(String[] args) {
-        /** Registering custom packets */
+        /* Registering custom packets */
 
         PacketType.registerPacketType("Example");
         PacketRegister.register(PacketType.getPacketType("Example"), PacketInExample.class);
         PacketHandler.addPacketHandler(PacketType.getPacketType("Example"), ExamplePacketHandler.class);
 
 
-        /** Launching */
+        /* Launching */
 
         // Launch client with
         CoreClient.startClient();
