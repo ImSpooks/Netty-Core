@@ -2,8 +2,6 @@ package me.ImSpooks.nettycore.server.packets;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutForceDisconnect;
-import me.ImSpooks.nettycore.packets.enums.DisconnectReason;
 import me.ImSpooks.nettycore.packets.handle.Packet;
 import me.ImSpooks.nettycore.server.settings.ServerSettings;
 import org.tinylog.Logger;
@@ -54,16 +52,6 @@ public class ServerPacketHandler extends ChannelInboundHandlerAdapter {
             Logger.error(t);
             throw t;
         }
-
-        new Thread(() -> {
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            System.out.println("Disconnecting client");
-            sendPacket(new PacketOutForceDisconnect(DisconnectReason.UNKNOWN));
-        }).start();
     }
 
     /**

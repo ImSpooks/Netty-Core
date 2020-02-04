@@ -125,6 +125,7 @@ public class ChannelBuilder extends ChannelInitializer<SocketChannel> {
      * @param ip Ip that disconnected
      */
     public void disconnect(String ip) {
+        // TODO disconnect handlers
         Logger.info("Client on ip {} disconnected.", ip);
     }
 }
