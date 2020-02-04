@@ -15,6 +15,7 @@ import me.ImSpooks.nettycore.packets.handle.Packet;
 import me.ImSpooks.nettycore.packets.handle.channels.WrappedChannel;
 import me.ImSpooks.nettycore.packets.networking.CoreImplementation;
 import me.ImSpooks.nettycore.packets.networking.PacketFlusher;
+import org.apache.commons.cli.*;
 import org.tinylog.Logger;
 
 import java.io.File;
@@ -39,6 +40,11 @@ public class CoreClient implements CoreImplementation, CoreConnection {
     private volatile Runnable coreConnected = () -> {};
     private boolean isConnected = false;
 
+    /**
+     * Core client constructor
+     *
+     * @param settings Client settings instance
+     */
     public CoreClient(ClientSettings settings) {
         this.settings = settings;
         int port = settings.getPort();
@@ -63,7 +69,7 @@ public class CoreClient implements CoreImplementation, CoreConnection {
     private boolean started = false;
     private final PacketFlusher packetFlusher = new PacketFlusher(this);
     private final NioEventLoopGroup workerGroup = new NioEventLoopGroup(2);
-    private ClientPacketHandler serverPacketHandler;
+    private ClientPacketHandler clientPacketHandler;
 
     /**
      * @see CoreConnection#start()
@@ -193,19 +199,45 @@ public class CoreClient implements CoreImplementation, CoreConnection {
         return wrappedChannel;
     }
 
+
+
     /**
-     * Method to launch the server
+     * Method to launch the client
      */
-    public static void main(String[] args) {
+    public static CoreClient startClient(String[] args) {
+        Options options = new Options();
+
+        Option configPath = new Option("cp", "config-path", true, "Path to the config file");
+        configPath.setRequired(false);
+        options.addOption(configPath);
+
+        CommandLineParser parser = new BasicParser();
+        HelpFormatter formatter = new HelpFormatter();
+        CommandLine cmd = null;
+
+        try {
+            cmd = parser.parse(options, args);
+        } catch (ParseException e) {
+            Logger.error("Cannot parse vm options with paremeters {}", e.getMessage());
+            formatter.printHelp("Core client", options);
+            System.exit(1);
+        }
+
+        String path = "config/server.json";
+        if (cmd.hasOption(configPath.getOpt())) {
+            path = configPath.getValue();
+        }
+
+
         ClientSettings settings;
         try {
-            settings = Settings.load(new File("config/server.json"), ClientSettings.class);
+            settings = Settings.load(new File(path), ClientSettings.class);
         } catch (FileNotFoundException e) {
             Logger.warn(e, "Unable to load settings file");
             settings = new ClientSettings();
 
             try {
-                Settings.save(new File("config/server.json"), settings);
+                Settings.save(new File(path), settings);
             } catch (IOException ex) {
                 Logger.error(ex, "Unable to save default settings.");
                 System.exit(0);
@@ -213,66 +245,99 @@ public class CoreClient implements CoreImplementation, CoreConnection {
         }
 
         CoreClient coreClient = new CoreClient(settings);
-
-/*        coreClient.setCoreConnected(() -> {
-            new Thread(() -> {
-                while (true) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    coreClient.sendPacket(new PacketInTest(UUID.randomUUID()));
-                }
-            }).start();
-        });*/
-
         coreClient.start();
+        return coreClient;
     }
 
+    /**
+     * Method to launch the client
+     */
+    public static CoreClient startClient() {
+        return startClient(new String[0]);
+    }
+
+
+
+    // Getters
+    /**
+     * @return Client settings
+     */
     public ClientSettings getSettings() {
         return settings;
     }
 
+    /**
+     * @return Identifier
+     */
     public UUID getIdentifier() {
         return identifier;
     }
 
+    /**
+     * @return Client has stopped
+     */
     public boolean isStopped() {
         return stopped;
     }
 
+    /**
+     * @return Action to perform when the client connects to the server
+     */
     public Runnable getCoreConnected() {
         return coreConnected;
     }
 
+    /**
+     * @param coreConnected Action to perform when the clients connects to the server
+     */
     public void setCoreConnected(Runnable coreConnected) {
         this.coreConnected = coreConnected;
     }
 
+    /**
+     * @return Is core connected
+     */
     public boolean isConnected() {
         return isConnected;
     }
 
+    /**
+     * @return Wrapped channel to the server
+     */
     public WrappedChannel getWrappedChannel() {
         return wrappedChannel;
     }
 
+    /**
+     * @return Client has started
+     */
     public boolean isStarted() {
         return started;
     }
 
+    /**
+     * @return Packet flusher instance
+     */
     public PacketFlusher getPacketFlusher() {
         return packetFlusher;
     }
 
+    /**
+     * @return Worker group instance
+     */
     public NioEventLoopGroup getWorkerGroup() {
         return workerGroup;
     }
 
-    public ClientPacketHandler getServerPacketHandler() {
-        return serverPacketHandler;
+    /**
+     * @return Client packet handler instance
+     */
+    public ClientPacketHandler getClientPacketHandler() {
+        return clientPacketHandler;
+    }
+
+    public static void main(String[] args) {
+        startClient(args);
     }
 
 }

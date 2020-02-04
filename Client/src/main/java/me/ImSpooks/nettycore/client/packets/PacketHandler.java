@@ -5,11 +5,10 @@ import me.ImSpooks.nettycore.client.packets.handle.NetworkPacketHandler;
 import me.ImSpooks.nettycore.client.settings.ClientSettings;
 import me.ImSpooks.nettycore.packets.handle.Packet;
 import me.ImSpooks.nettycore.packets.handle.PacketType;
+import org.tinylog.Logger;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -17,6 +16,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Copyright © ImSpooks
  */
 public class PacketHandler {
+
+    private static final Map<PacketType, List<Class<? extends SubPacketHandler>>> packetHandlers = new HashMap<>();
+
+    static {
+        addPacketHandler(PacketType.NETWORKING, NetworkPacketHandler.class);
+    }
+
+    public static void addPacketHandler(PacketType packetType, Class<? extends SubPacketHandler> packetHandler) {
+        packetHandlers.putIfAbsent(packetType, new ArrayList<>());
+        packetHandlers.get(packetType).add(packetHandler);
+    }
+
 
     // Variables
     private String ip;
@@ -36,13 +47,29 @@ public class PacketHandler {
         this.ip = settings.getTargetIp();
         this.password = settings.getPassword();
 
-        this.packetHandlers.put(PacketType.NETWORKING, new NetworkPacketHandler(this, settings));
+        for (Map.Entry<PacketType, List<Class<? extends SubPacketHandler>>> entry : packetHandlers.entrySet()) {
+            try {
+                localPacketHandlers.putIfAbsent(entry.getKey(), new ArrayList<>());
+
+                for (Class<? extends SubPacketHandler> packetHandler : entry.getValue()) {
+                    localPacketHandlers.get(entry.getKey()).add(packetHandler.getConstructor(PacketHandler.class, ClientSettings.class).newInstance(this, settings));
+                }
+            } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                Logger.warn(e);
+            }
+        }
     }
 
-     private final Map<PacketType, SubPacketHandler> packetHandlers = Collections.synchronizedMap(new HashMap<>());
+    private final Map<PacketType, List<SubPacketHandler>> localPacketHandlers = Collections.synchronizedMap(new HashMap<>());
 
     public void handlePacket(ChannelHandlerContext ctx, Packet packet) {
-        this.packetHandlers.get(packet.getPacketType()).handlePacket(ctx, packet);
+        boolean found = false;
+        for (SubPacketHandler subPacketHandler : localPacketHandlers.get(packet.getPacketType())) {
+            found = subPacketHandler.handlePacket(ctx, packet) || found;
+        }
+        if (!found) {
+            Logger.warn("There is no packet handler found for packet \"{}\"", packet.getClass().getSimpleName());
+        }
     }
 
     /**
@@ -69,7 +96,7 @@ public class PacketHandler {
     /**
      * @return Sub packet handlers for each type
      */
-    public Map<PacketType, SubPacketHandler> getPacketHandlers() {
-        return packetHandlers;
+    public Map<PacketType, List<SubPacketHandler>> getPacketHandlers() {
+        return localPacketHandlers;
     }
 }

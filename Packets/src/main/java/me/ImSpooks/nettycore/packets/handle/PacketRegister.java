@@ -1,7 +1,6 @@
 package me.ImSpooks.nettycore.packets.handle;
 
 import me.ImSpooks.nettycore.packets.collection.networking.in.PacketInRequestConnection;
-import me.ImSpooks.nettycore.packets.collection.networking.in.PacketInTest;
 import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutConfirmConnection;
 import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutForceDisconnect;
 
@@ -25,26 +24,20 @@ public class PacketRegister {
 
     static {
         // Initializes all packets
-        register(1, PacketInRequestConnection.class, PacketType.NETWORKING);
-        register(2, PacketOutConfirmConnection.class, PacketType.NETWORKING);
-        register(3, PacketOutForceDisconnect.class, PacketType.NETWORKING);
-
-        register(4, PacketInTest.class, PacketType.NETWORKING);
+        register(PacketType.NETWORKING, PacketInRequestConnection.class);
+        register(PacketType.NETWORKING, PacketOutConfirmConnection.class);
+        register(PacketType.NETWORKING, PacketOutForceDisconnect.class);
     }
 
     /**
      * Register a packet
      *
-     * @param id Packet id
-     * @param packet Packet class
      * @param packetType Packet type
+     * @param packet Packet class
      */
-    private static void register(int id, Class<? extends Packet> packet, PacketType packetType) {
-        id = packetType.START_ID + id;
+    public static void register(PacketType packetType, Class<? extends Packet> packet) {
+        int id = REGISTERED_PACKETS.size();
 
-        if (REGISTERED_PACKETS.containsKey(id)) {
-            throw new IllegalArgumentException(String.format("Packet with ID %s already registered for type %s", id - packetType.START_ID + 1, packetType));
-        }
         if (REGISTERED_IDS.containsKey(packet)) {
             throw new IllegalArgumentException("Packet " + packet + " already registered");
         }

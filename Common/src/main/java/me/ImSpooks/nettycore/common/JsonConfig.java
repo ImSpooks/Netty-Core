@@ -3,7 +3,6 @@ package me.ImSpooks.nettycore.common;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
-import org.tinylog.Logger;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -85,17 +84,16 @@ public class JsonConfig {
     /**
      * Saves the config
      */
-    public void save() {
+    public void save() throws IOException{
         try (Writer writer = new FileWriter(this.file, false)){
             writer.write(this.toString());
-        } catch (IOException e) {
-            Logger.error(e);
         }
     }
 
     /**
      * Assign a value to a key that doesn't exist
-     * @see JsonConfig#set(String, Object) 
+     * @see JsonConfig#set(String, Object)
+     * <b>Note:</b> Make sure to save the config after.
      *
      * @param key Name of key
      * @param defVal Value to set
@@ -104,7 +102,6 @@ public class JsonConfig {
         Object val = this.object.get(key);
         if (val == null) {
             this.set(key, defVal);
-            this.save();
         }
     }
 
@@ -190,6 +187,7 @@ public class JsonConfig {
         }
         return ((Long) val).intValue();
     }
+
     /**
      * Get a byte value in the config
      *

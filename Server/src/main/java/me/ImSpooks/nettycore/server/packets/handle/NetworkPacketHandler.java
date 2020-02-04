@@ -2,7 +2,6 @@ package me.ImSpooks.nettycore.server.packets.handle;
 
 import io.netty.channel.ChannelHandlerContext;
 import me.ImSpooks.nettycore.packets.collection.networking.in.PacketInRequestConnection;
-import me.ImSpooks.nettycore.packets.collection.networking.in.PacketInTest;
 import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutConfirmConnection;
 import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutForceDisconnect;
 import me.ImSpooks.nettycore.packets.enums.DisconnectReason;
@@ -84,10 +83,5 @@ public class NetworkPacketHandler extends SubPacketHandler {
         this.packetHandler.getClient().setIdentification(packet.getIdentification());
         this.packetHandler.getClient().setName(packet.getName());
         ctx.writeAndFlush(new PacketOutConfirmConnection());
-    }
-
-    @PacketHandling
-    public void handlePacket(ChannelHandlerContext ctx, PacketInTest packet) {
-        Logger.debug("Test packet received with and took {} milliseconds with id \"{}\"", System.currentTimeMillis() - packet.getTime(), packet.getUuid());
     }
 }

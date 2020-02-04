@@ -37,7 +37,6 @@ public class PacketDecoder extends ByteToMessageDecoder {
 
             out.add(packet);
         } catch (Throwable t) {
-            if (t instanceof IndexOutOfBoundsException) return;
             Logger.error(t);
             throw t;
         }

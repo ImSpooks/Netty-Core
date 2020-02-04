@@ -66,7 +66,6 @@ public class SubPacketHandler {
      */
     public boolean handlePacket(ChannelHandlerContext ctx, Packet packet) {
         if (!METHODS.containsKey(packet.getClass())) {
-            Logger.warn("There is no packet handler found for packet \"{}\"", packet.getClass().getSimpleName());
             return false;
         }
 

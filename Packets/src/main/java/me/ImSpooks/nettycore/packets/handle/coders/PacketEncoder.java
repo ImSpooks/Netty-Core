@@ -27,9 +27,7 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
             WrappedOutputStream wrapped = new WrappedOutputStream(out);
             wrapped.writeInt(msg.getId());
             msg.send(wrapped);
-
         } catch (Throwable t) {
-            if (t instanceof IndexOutOfBoundsException) return;
             Logger.error(t);
             throw t;
         }
