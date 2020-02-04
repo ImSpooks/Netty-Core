@@ -4,12 +4,20 @@ It communicates with the use of packets.
 
 <i>This project was made for self learning purposes.</i>
 
+1. [Requirements](#requirements)
+2. [Build and Test](#build-and-test)
+3. [Using this project](#using-this-project)
+    1. [Adding packet types](#adding-packet-types)
+    2. [Creating packets](#creating-packets)
+    3. [Handling packets](#handling-packets)
+    4. [Launching the client/server](#launching-the-clientserver)
 
-# Requirements
+
+## Requirements
 - Java <i>(Tested in Java 11)</i>
-- Maven <i>(Build in with intellij)</i>
+- Maven
 
-# Build and Test
+## Build and Test
 Building this project is pretty easy, dependencies will automatically be downloaded using maven:
 1. Clone this repository with `git clone https://github.com/ImSpooks/Netty-Core.git`
 2. Browse to the cloned repository.
@@ -19,7 +27,7 @@ To run the server, go to the `out` folder and type `java -jar Server-1.0.jar`
 
 To run the server, go to the `out` folder and type `java -jar Client-1.0.jar`
 
-# How to use this project
+# Using this project
 To use/edit this project all you need is a Java IDE such as IntelliJ with Maven.
 With that IDE, you can open this project's pom and Maven will do the rest.
 
@@ -37,9 +45,7 @@ class PacketRegisterer {
     }
 }
 ```
-
 ##
-
 ### Creating packets
 To create packets <i>(<b>Note:</b> `PacketIn` is used for client-to-server packets, `PacketOut` is used for server-to-client packets)</i>:
 1. Create a class that extends either `Packet`, `PacketIn` or `PacketOut`.
@@ -101,7 +107,6 @@ class PacketRegisterer {
 }
 ```
 ##
-
 ### Handling packets
 To handle packets you must have a class that extends to a sub packet handler:
 1. Create a class that extends to SubPacketHandler
@@ -135,19 +140,21 @@ class PacketRegisterer {
 }
 ```
 ##
-
-### Launch the client/server
+### Launching the client/server
 To launch the client/server you need to do these few things:
 ```java
 class Launcher {
 
     public static void main(String[] args) {
         /** Registering custom packets */
+
         PacketType.registerPacketType("Example");
         PacketRegister.register(PacketType.getPacketType("Example"), PacketInExample.class);
         PacketHandler.addPacketHandler(PacketType.getPacketType("Example"), ExamplePacketHandler.class);
 
+
         /** Launching */
+
         // Launch client with
         CoreClient.startClient();
         // Or launch the server with
