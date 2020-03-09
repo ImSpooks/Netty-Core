@@ -7,10 +7,12 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import me.ImSpooks.nettycore.client.interfaces.CoreConnection;
 import me.ImSpooks.nettycore.client.networking.CoreChannelInitializer;
+import me.ImSpooks.nettycore.client.networking.IncomingListener;
+import me.ImSpooks.nettycore.client.networking.PacketReceiver;
 import me.ImSpooks.nettycore.client.packets.ClientPacketHandler;
 import me.ImSpooks.nettycore.client.settings.ClientSettings;
 import me.ImSpooks.nettycore.common.Settings;
-import me.ImSpooks.nettycore.packets.collection.networking.in.PacketInRequestConnection;
+import me.ImSpooks.nettycore.packets.collection.networking.PacketRequestConnection;
 import me.ImSpooks.nettycore.packets.handle.Packet;
 import me.ImSpooks.nettycore.packets.handle.channels.WrappedChannel;
 import me.ImSpooks.nettycore.packets.networking.CoreImplementation;
@@ -23,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Nick on 31 jan. 2020.
@@ -69,7 +72,9 @@ public class CoreClient implements CoreImplementation, CoreConnection {
     private boolean started = false;
     private final PacketFlusher packetFlusher = new PacketFlusher(this);
     private final NioEventLoopGroup workerGroup = new NioEventLoopGroup(2);
+    private PacketReceiver packetReceiver = new PacketReceiver();
     private ClientPacketHandler clientPacketHandler;
+
 
     /**
      * @see CoreConnection#start()
@@ -87,6 +92,14 @@ public class CoreClient implements CoreImplementation, CoreConnection {
         bootstrap.handler(new CoreChannelInitializer(this));
 
         establish(bootstrap);
+
+        this.workerGroup.scheduleWithFixedDelay(new Runnable() {
+
+            @Override
+            public void run() {
+                getPacketReceiver().removeExpired();
+            }
+        }, 1, 1, TimeUnit.SECONDS);
     }
 
     /**
@@ -115,7 +128,7 @@ public class CoreClient implements CoreImplementation, CoreConnection {
 
                     Logger.info("Connection established, confirming identity...");
 
-                    packetFlusher.sendPacketHighPriority(new PacketInRequestConnection(this.settings.getPassword(), this.settings.getPort(), this.settings.getName(), this.identifier));
+                    packetFlusher.sendPacketHighPriority(new PacketRequestConnection(this.settings.getPassword(), this.settings.getPort(), this.settings.getName(), this.identifier));
 
                     Logger.info("Connection verification requested.");
                     isConnected = true;
@@ -146,6 +159,7 @@ public class CoreClient implements CoreImplementation, CoreConnection {
             wrappedChannel.unlock();
 
             Logger.warn("Connection lost... Trying again in {} seconds...", (RECONNECT_INTERVAL / 1000L));
+            clientPacketHandler.setConnectionConfirmed(false);
             isConnected = false;
             Thread.sleep(RECONNECT_INTERVAL);
             establish(bootstrap);
@@ -182,6 +196,13 @@ public class CoreClient implements CoreImplementation, CoreConnection {
         } finally {
             wrappedChannel.unlock();
         }
+    }
+
+    /**
+     * @see PacketReceiver#addListener(Class, IncomingListener)
+     */
+    public <T extends Packet> void addIncomingListener(Class<T> packet, IncomingListener<T> incomingListener) {
+        this.packetReceiver.addListener(packet, incomingListener);
     }
 
     /**
@@ -336,8 +357,15 @@ public class CoreClient implements CoreImplementation, CoreConnection {
         return clientPacketHandler;
     }
 
-    public static void main(String[] args) {
-        startClient(args);
+    /**
+     * @return Packet receiver class
+     */
+    public PacketReceiver getPacketReceiver() {
+        return packetReceiver;
+    }
+
+    public static CoreClient main(String[] args) {
+        return startClient(args);
     }
 
 }

@@ -3,32 +3,26 @@ package me.ImSpooks.nettycore.client.packets;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.ImSpooks.nettycore.client.CoreClient;
-import me.ImSpooks.nettycore.client.settings.ClientSettings;
-import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutConfirmConnection;
-import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutForceDisconnect;
+import me.ImSpooks.nettycore.packets.collection.networking.PacketConfirmConnection;
 import me.ImSpooks.nettycore.packets.handle.Packet;
 import org.tinylog.Logger;
 
 /**
- * Created by Nick on 31 jan. 2020.
+ * Created by Nick on 9 Mar 2020.
  * Copyright © ImSpooks
  */
 public class ClientPacketHandler extends ChannelInboundHandlerAdapter {
 
-    // Variables
-    private final PacketHandler packetHandler;
     private final CoreClient coreClient;
-    private volatile boolean connectionConfirmed = false;
+    private volatile boolean connectionConfirmed;
 
     /**
      * Server packet handler instance for connected client
      *
      * @param coreClient Client instance
-     * @param settings Server settings
      */
-    public ClientPacketHandler(CoreClient coreClient, ClientSettings settings) {
+    public ClientPacketHandler(CoreClient coreClient) {
         this.coreClient = coreClient;
-        this.packetHandler = new PacketHandler(settings);
     }
 
     /**
@@ -38,27 +32,23 @@ public class ClientPacketHandler extends ChannelInboundHandlerAdapter {
      * @param msg Packet as an object
      */
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Packet packet = (Packet) msg;
-
-        if (packet instanceof PacketOutForceDisconnect) {
-            this.packetHandler.handlePacket(ctx, packet);
-            return;
-        }
-
-        if (connectionConfirmed) {
-            this.packetHandler.handlePacket(ctx, packet);
+        if (this.connectionConfirmed) {
+            this.coreClient.getPacketReceiver().received(packet);
         } else {
-            if (!(packet instanceof PacketOutConfirmConnection)) {
-                Logger.info("First packet was {} but had to be PacketOutConfirmConnection, disconnecting...", packet.getClass().getSimpleName());
+            if (!(packet instanceof PacketConfirmConnection)) {
+                Logger.info("First packet was {} but had to be PacketConfirmConnection, disconnecting...", packet.getClass().getSimpleName());
                 this.coreClient.reconnect();
                 return;
             }
+            PacketConfirmConnection correct = (PacketConfirmConnection) packet;
 
             Logger.info("Connection confirmed, packets can now be send...");
-
-            if (this.coreClient.getCoreConnected() != null)
+            if(this.coreClient.getCoreConnected() != null) {
                 this.coreClient.getCoreConnected().run();
+            }
+            this.coreClient.getPacketReceiver().connectionEstablished();
             this.connectionConfirmed = true;
         }
     }
@@ -75,23 +65,16 @@ public class ClientPacketHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * @return Packet handler
-     */
-    public PacketHandler getPacketHandler() {
-        return packetHandler;
-    }
-
-    /**
-     * @return Core client instance
-     */
-    public CoreClient getCoreClient() {
-        return coreClient;
-    }
-
-    /**
-     * @return Is connection confirmed
+     * @return {@code true} when connection has been confirmed, {@code false} otherwise
      */
     public boolean isConnectionConfirmed() {
         return connectionConfirmed;
+    }
+
+    /**
+     * @param connectionConfirmed Set if connection has been confirmed
+     */
+    public void setConnectionConfirmed(boolean connectionConfirmed) {
+        this.connectionConfirmed = connectionConfirmed;
     }
 }

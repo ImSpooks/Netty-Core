@@ -1,9 +1,9 @@
 package me.ImSpooks.nettycore.server.packets.handle;
 
 import io.netty.channel.ChannelHandlerContext;
-import me.ImSpooks.nettycore.packets.collection.networking.in.PacketInRequestConnection;
-import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutConfirmConnection;
-import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutForceDisconnect;
+import me.ImSpooks.nettycore.packets.collection.networking.PacketConfirmConnection;
+import me.ImSpooks.nettycore.packets.collection.networking.PacketForceDisconnect;
+import me.ImSpooks.nettycore.packets.collection.networking.PacketRequestConnection;
 import me.ImSpooks.nettycore.packets.enums.DisconnectReason;
 import me.ImSpooks.nettycore.server.Core;
 import me.ImSpooks.nettycore.server.packets.PacketHandler;
@@ -31,14 +31,14 @@ public class NetworkPacketHandler extends SubPacketHandler {
      * @param packet PacketInRequestConnection
      */
     @PacketHandling
-    public void handlePacket(ChannelHandlerContext ctx, PacketInRequestConnection packet) {
+    public void handlePacket(ChannelHandlerContext ctx, PacketRequestConnection packet) {
         String host = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
 
         // Whitelist check
         if (this.settings.getWhitelist().isEnabled()) {
             if (!this.settings.getWhitelist().getIps().contains(host)) {
                 // Send disconnect packet with not whitelisted as reason
-                ctx.writeAndFlush(new PacketOutForceDisconnect(DisconnectReason.NOT_WHITELISTED));
+                ctx.writeAndFlush(new PacketForceDisconnect(DisconnectReason.NOT_WHITELISTED));
                 Logger.info("Client ({}) on ip ({}) was disconnected because it is not whitelisted.", packet.getName(), host);
                 return;
             }
@@ -47,7 +47,7 @@ public class NetworkPacketHandler extends SubPacketHandler {
         else if (this.settings.getBlacklist().isEnabled()) {
             if (this.settings.getBlacklist().getIps().contains(host)) {
                 // Send disconnect packet with blacklisted as reason
-                ctx.writeAndFlush(new PacketOutForceDisconnect(DisconnectReason.BLACKLISTED));
+                ctx.writeAndFlush(new PacketForceDisconnect(DisconnectReason.BLACKLISTED));
                 Logger.info("Client ({}) on ip ({}) was disconnected because it is blacklisted.", packet.getName(), host);
                 return;
             }
@@ -82,6 +82,6 @@ public class NetworkPacketHandler extends SubPacketHandler {
         }
         this.packetHandler.getClient().setIdentification(packet.getIdentification());
         this.packetHandler.getClient().setName(packet.getName());
-        ctx.writeAndFlush(new PacketOutConfirmConnection());
+        ctx.writeAndFlush(new PacketConfirmConnection());
     }
 }

@@ -1,6 +1,6 @@
-package me.ImSpooks.nettycore.packets.collection.networking.in;
+package me.ImSpooks.nettycore.packets.collection.networking;
 
-import me.ImSpooks.nettycore.packets.handle.PacketIn;
+import me.ImSpooks.nettycore.packets.handle.Packet;
 import me.ImSpooks.nettycore.packets.handle.channels.WrappedInputStream;
 import me.ImSpooks.nettycore.packets.handle.channels.WrappedOutputStream;
 
@@ -11,7 +11,7 @@ import java.util.UUID;
  * Created by Nick on 31 jan. 2020.
  * Copyright © ImSpooks
  */
-public class PacketInRequestConnection extends PacketIn {
+public class PacketRequestConnection extends Packet {
 
     // Variables
     private String password;
@@ -19,10 +19,10 @@ public class PacketInRequestConnection extends PacketIn {
     private String name;
     private UUID identification;
 
-    public PacketInRequestConnection() {
+    public PacketRequestConnection() {
     }
 
-    public PacketInRequestConnection(String password, int port, String name, UUID identifier) {
+    public PacketRequestConnection(String password, int port, String name, UUID identifier) {
         this.password = password;
         this.port = port;
         this.name = name;

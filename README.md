@@ -55,28 +55,32 @@ To create packets <i>(<b>Note:</b> `PacketIn` is used for client-to-server packe
 Example:
 
 ```java
-public class PacketInExample extends PacketInt {
-    private UUID uuid;
+public class PacketExample extends Packet {
+    private long verificationId;
     private long time;
     
     // empty constructor
     public PacketInExample() {}
     
-    public PacketInExample(UUID uuid) {
-        this.uuid = uuid;
+    public PacketInExample(long verificationId) {
+        this.verificationId = verificationId;
         this.time = System.currentTimeMillis();
     }
     
     @Override
     public void send(WrappedOutputStream out) throws IOException {
-        out.writeUUID(this.uuid);
+        out.writeLong(this.verificationId);
         out.writeLong(this.time);
     }
     
     @Override
     public void receive(WrappedInputStream in) throws IOException {
-        this.uuid = in.readUUID();
+        this.verificationId = in.readLong();
         this.time = in.readLong();
+    }
+
+    public long getVerificationId() {
+        return verificationId;
     }
 
     public UUID getUuid() {
@@ -108,7 +112,7 @@ class PacketRegisterer {
 ```
 ##
 ### Handling packets
-To handle packets you must have a class that extends to a sub packet handler:
+To handle packets received by the client you must have a class that extends to a sub packet handler:
 1. Create a class that extends to SubPacketHandler
 2. Every packet handling method must have the `@PacketHandling` annotation.
 3. Every packet handling method must have `ChannelHandlerContext` as their first parameter type, and the second parameter as the packet
@@ -123,12 +127,44 @@ public class ExamplePacketHandler extends SubPacketHandler {
     }
 
     @PacketHandling
-    public void handlePacket(ChannelHandlerContext ctx, PacketInExample packet) {
-        System.out.println("Uuid: " + packet.getUuid().toString() + ", latency: " + (System.currentTimeMillis() - packet.getTime()) + " ms");
+    public void handlePacket(ChannelHandlerContext ctx, PacketExample packet) {
+        System.out.println("Verification ID: " + packet.getVerificationId() + ", latency: " + (System.currentTimeMillis() - packet.getTime()) + " ms");
+        ctx.writeAndFlush(new PacketExample(packet.getVerificationId(), packet.getUUID()));
     }
 
 }
 ```
+
+To handle packets received by the client, you must first send them:
+```java
+public class Launcher {
+    public static void main(String[] args) {
+        CoreClient client = CoreClient.startClient();
+
+        long now = System.currentTimeMillis();
+        long verificationId = new Random().nextLong();
+        client.addIncomingListener(PacketExample.class, new IncomingListener<PacketExample>(10) {
+            @Override
+            protected boolean onReceive(PacketExample packet) {
+                // Packet received
+                if (packet.getVerificationId() == verificationId) {
+                    Logger.info("Took {} ms to send and receive the packet", packet.Time() - now);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            protected void onExpire() {
+                // Packet not received in given time
+                Logger.info("Packet wasn't received after 10 seconds.");
+            }
+        });
+        client.sendPacket(new PacketExample(verificationId));
+    }
+}
+```
+
 Example to register the packet handler:
 ```java
 class PacketRegisterer {
@@ -147,9 +183,10 @@ class Launcher {
 
     public static void main(String[] args) {
         /* Registering custom packets */
-
         PacketType.registerPacketType("Example");
         PacketRegister.register(PacketType.getPacketType("Example"), PacketInExample.class);
+
+        /* Register packet handler in server */
         PacketHandler.addPacketHandler(PacketType.getPacketType("Example"), ExamplePacketHandler.class);
 
 
@@ -159,6 +196,29 @@ class Launcher {
         CoreClient.startClient();
         // Or launch the server with
         Core.startServer();
+        
+        /* Send/receive packets with the client */
+        long now = System.currentTimeMillis();
+        long verificationId = new Random().nextLong();
+        client.addIncomingListener(PacketExample.class, new IncomingListener<PacketExample>(10) {
+            @Override
+            protected boolean onReceive(PacketExample packet) {
+                // Packet received
+                if (packet.getVerificationId() == verificationId) {
+                    Logger.info("Took {} ms to send and receive the packet", packet.Time() - now);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            protected void onExpire() {
+                // Packet not received in given time
+                Logger.info("Packet wasn't received after 10 seconds.");
+            }
+        });
+        client.sendPacket(new PacketExample(verificationId));
+
     }
 }
 ```

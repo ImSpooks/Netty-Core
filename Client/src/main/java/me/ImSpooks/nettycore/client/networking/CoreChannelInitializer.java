@@ -41,6 +41,6 @@ public class CoreChannelInitializer extends ChannelInitializer<SocketChannel> {
 
         pipeline.addLast("packet_encoder", new PacketEncoder());
         pipeline.addLast("packet_decoder", new PacketDecoder());
-        pipeline.addLast("packet_handler", new ClientPacketHandler(this.coreClient, this.coreClient.getSettings()));
+        pipeline.addLast("packet_handler", new ClientPacketHandler(this.coreClient));
     }
 }

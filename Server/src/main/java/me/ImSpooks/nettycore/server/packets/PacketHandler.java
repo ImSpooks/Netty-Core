@@ -1,7 +1,7 @@
 package me.ImSpooks.nettycore.server.packets;
 
 import io.netty.channel.ChannelHandlerContext;
-import me.ImSpooks.nettycore.packets.collection.networking.in.PacketInRequestConnection;
+import me.ImSpooks.nettycore.packets.collection.networking.PacketRequestConnection;
 import me.ImSpooks.nettycore.packets.handle.Packet;
 import me.ImSpooks.nettycore.packets.handle.PacketType;
 import me.ImSpooks.nettycore.server.packets.handle.NetworkPacketHandler;
@@ -66,7 +66,7 @@ public class PacketHandler {
     private final Map<PacketType, List<SubPacketHandler>> localPacketHandlers = Collections.synchronizedMap(new HashMap<>());
 
     public void handlePacket(ChannelHandlerContext ctx, Packet packet) {
-        if (packet instanceof PacketInRequestConnection) {
+        if (packet instanceof PacketRequestConnection) {
             this.localPacketHandlers.get(PacketType.NETWORKING).get(0).handlePacket(ctx, packet);
             return;
         }

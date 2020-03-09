@@ -1,8 +1,8 @@
 package me.ImSpooks.nettycore.packets.handle;
 
-import me.ImSpooks.nettycore.packets.collection.networking.in.PacketInRequestConnection;
-import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutConfirmConnection;
-import me.ImSpooks.nettycore.packets.collection.networking.out.PacketOutForceDisconnect;
+import me.ImSpooks.nettycore.packets.collection.networking.PacketConfirmConnection;
+import me.ImSpooks.nettycore.packets.collection.networking.PacketForceDisconnect;
+import me.ImSpooks.nettycore.packets.collection.networking.PacketRequestConnection;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -24,9 +24,9 @@ public class PacketRegister {
 
     static {
         // Initializes all packets
-        register(PacketType.NETWORKING, PacketInRequestConnection.class);
-        register(PacketType.NETWORKING, PacketOutConfirmConnection.class);
-        register(PacketType.NETWORKING, PacketOutForceDisconnect.class);
+        register(PacketType.NETWORKING, PacketRequestConnection.class);
+        register(PacketType.NETWORKING, PacketConfirmConnection.class);
+        register(PacketType.NETWORKING, PacketForceDisconnect.class);
     }
 
     /**
