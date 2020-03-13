@@ -47,8 +47,8 @@ class PacketRegisterer {
 ```
 ##
 ### Creating packets
-To create packets <i>(<b>Note:</b> `PacketIn` is used for client-to-server packets, `PacketOut` is used for server-to-client packets)</i>:
-1. Create a class that extends either `Packet`, `PacketIn` or `PacketOut`.
+To create packets:
+1. Create a class that extends the `Packet` class
 2. Create variable fields and a constructor with these parameters and an empty constructor.
 3. Write all your code in the `send` and `receive` method.
 
@@ -60,9 +60,9 @@ public class PacketExample extends Packet {
     private long time;
     
     // empty constructor
-    public PacketInExample() {}
+    public PacketExample() {}
     
-    public PacketInExample(long verificationId) {
+    public PacketExample(long verificationId) {
         this.verificationId = verificationId;
         this.time = System.currentTimeMillis();
     }
@@ -83,10 +83,6 @@ public class PacketExample extends Packet {
         return verificationId;
     }
 
-    public UUID getUuid() {
-        return uuid;
-    }
-
     public long getTime() {
         return time;
     }
@@ -100,13 +96,13 @@ class PacketRegisterer {
 
     public static void main(String[] args) {
         // Register packet
-        PacketRegister.register(PacketType.getPacketType("Example"), PacketInExample.class);
+        PacketRegister.register(PacketType.getPacketType("Example"), PacketExample.class);
 
         // Sending packet from client
-        core_instance.sendPacket(new PacketInExample(UUID.randomUUID()));
+        core_instance.sendPacket(new PacketExample(vertificationId));
 
         // Sending packet from server
-        client_serverpackethandler_instance.sendPacket(new PacketInExample(UUID.randomUUID()));
+        client.sendPacket(new PacketExample(vertificationId));
     }
 }
 ```
@@ -129,7 +125,7 @@ public class ExamplePacketHandler extends SubPacketHandler {
     @PacketHandling
     public void handlePacket(ChannelHandlerContext ctx, PacketExample packet) {
         System.out.println("Verification ID: " + packet.getVerificationId() + ", latency: " + (System.currentTimeMillis() - packet.getTime()) + " ms");
-        ctx.writeAndFlush(new PacketExample(packet.getVerificationId(), packet.getUUID()));
+        ctx.writeAndFlush(new PacketExample(packet.getVerificationId()));
     }
 
 }
@@ -184,7 +180,7 @@ class Launcher {
     public static void main(String[] args) {
         /* Registering custom packets */
         PacketType.registerPacketType("Example");
-        PacketRegister.register(PacketType.getPacketType("Example"), PacketInExample.class);
+        PacketRegister.register(PacketType.getPacketType("Example"), PacketExample.class);
 
         /* Register packet handler in server */
         PacketHandler.addPacketHandler(PacketType.getPacketType("Example"), ExamplePacketHandler.class);
