@@ -118,7 +118,7 @@ Example:
 ```java
 public class ExamplePacketHandler extends SubPacketHandler {
 
-    public NetworkPacketHandler(PacketHandler packetHandler, ClientSettings settings) {
+    public NetworkPacketHandler(PacketHandler packetHandler, ServerSettings settings) {
         super(packetHandler, settings);
     }
 
