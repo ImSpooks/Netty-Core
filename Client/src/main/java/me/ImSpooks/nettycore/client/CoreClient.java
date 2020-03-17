@@ -21,7 +21,6 @@ import org.apache.commons.cli.*;
 import org.tinylog.Logger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Random;
 import java.util.UUID;
@@ -93,13 +92,7 @@ public class CoreClient implements CoreImplementation, CoreConnection {
 
         establish(bootstrap);
 
-        this.workerGroup.scheduleWithFixedDelay(new Runnable() {
-
-            @Override
-            public void run() {
-                getPacketReceiver().removeExpired();
-            }
-        }, 1, 1, TimeUnit.SECONDS);
+        this.workerGroup.scheduleWithFixedDelay(() -> getPacketReceiver().removeExpired(), 1, 1, TimeUnit.SECONDS);
     }
 
     /**
@@ -253,7 +246,7 @@ public class CoreClient implements CoreImplementation, CoreConnection {
         ClientSettings settings;
         try {
             settings = Settings.load(new File(path), ClientSettings.class);
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             Logger.warn(e, "Unable to load settings file");
             settings = new ClientSettings();
 

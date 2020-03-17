@@ -13,14 +13,18 @@ public interface Settings {
 
     Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    static <T extends Settings> T load(File file, Class<T> clazz) throws FileNotFoundException {
+    static <T extends Settings> T load(File file, Class<T> clazz) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(file.getAbsolutePath()));
         return gson.fromJson(br, clazz);
     }
 
     static void save(File file, Settings settings) throws IOException {
-        if (!file.exists())
+        if (!file.exists()) {
+            if (!file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
             file.createNewFile();
+        }
 
         try (Writer writer = new FileWriter(file, false)){
             writer.write(gson.toJson(settings));

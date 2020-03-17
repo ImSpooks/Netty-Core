@@ -12,7 +12,6 @@ import org.apache.commons.cli.*;
 import org.tinylog.Logger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
@@ -67,7 +66,7 @@ public class Core {
         configPath.setRequired(false);
         options.addOption(configPath);
 
-        CommandLineParser parser = new BasicParser();
+        CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine cmd = null;
 
@@ -88,7 +87,7 @@ public class Core {
         ServerSettings settings;
         try {
             settings = Settings.load(new File(path), ServerSettings.class);
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             Logger.warn(e, "Unable to load settings file");
             settings = new ServerSettings();
 
